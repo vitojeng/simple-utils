@@ -11,11 +11,15 @@ lazy val root = project
 
     libraryDependencies ++= Seq(
         munit % Test,
+        postgresql % Test,
+        testcontainers % Test,
+        testcontainersPostgresql % Test,
+        testcontainersJdbc % Test,
     ),
 
     // To make the default compiler and REPL use Dotty
     scalaVersion := scala3Version,
 
     // To cross compile with Scala 3 and Scala 2
-    crossScalaVersions := Seq(scala3Version, scala2Version)
+    //crossScalaVersions := Seq(scala3Version, scala2Version)
   )
