@@ -1,7 +1,6 @@
 import Dependencies._
 
 val scala2Version = "2.13.8"
-val scala3Version = "3.1.2"
 
 lazy val root = project
   .in(file("."))
@@ -10,16 +9,16 @@ lazy val root = project
     version := "0.1.0",
 
     libraryDependencies ++= Seq(
+        hikariCP % Compile,
+
         munit % Test,
         postgresql % Test,
         testcontainers % Test,
         testcontainersPostgresql % Test,
         testcontainersJdbc % Test,
+        slf4jApi % Test,
+        logbackClassic % Test,
     ),
 
-    // To make the default compiler and REPL use Dotty
-    scalaVersion := scala3Version,
-
-    // To cross compile with Scala 3 and Scala 2
-    //crossScalaVersions := Seq(scala3Version, scala2Version)
+    scalaVersion := scala2Version
   )
