@@ -89,12 +89,23 @@ object JdbcUtils {
     }
 
     def query[T](sql: String, parameters: Seq[Any] = Seq.empty)(f: ResultSet => T)(implicit conn: Connection): Seq[T] = {
-      Using.Manager { use =>
-        val statement = use(conn.prepareStatement(sql))
+      val statement = conn.prepareStatement(sql)
+      Using.resource(statement) { statement =>
         _setParameters(statement, parameters)
-        val rs = use(statement.executeQuery())
-        _iteratorOf(rs)(f).toSeq
-      }.get
+        Using.resource(statement.executeQuery()) { rs =>
+          _iteratorOf(rs)(f).toSeq
+        }
+      }
+    }
+
+    def firstRow[T](sql: String, parameters: Seq[Any] = Seq.empty)(f: ResultSet => T)(implicit conn: Connection): Option[T] = {
+      val statement = conn.prepareStatement(sql)
+      Using.resource(statement) { statement =>
+        _setParameters(statement, parameters)
+        Using.resource(statement.executeQuery()) { rs =>
+          if (rs.next()) Some(f(rs)) else None
+        }
+      }
     }
 
   }

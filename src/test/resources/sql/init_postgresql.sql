@@ -8,14 +8,14 @@ INSERT INTO bar (foo) VALUES ('hello world');
 CREATE TABLE passengers (
    id INT PRIMARY KEY NOT NULL,
    "name" VARCHAR (100) NOT NULL,
-   "Email" VARCHAR (255) UNIQUE NOT NULL,
-   "Age" INTEGER NOT NULL,
-   "Travel_to" VARCHAR (255) NOT NULL,
-   "Payment" INTEGER,
-   "Travel_date" DATE
+   email VARCHAR (255) UNIQUE NOT NULL,
+   age INTEGER NOT NULL,
+   travel_to VARCHAR (255) NOT NULL,
+   payment INTEGER,
+   travel_date DATE
 );
 
-INSERT INTO passengers (id, "name", "Email", "Age", "Travel_to", "Payment", "Travel_date")
+INSERT INTO passengers (id, "name", email, age, travel_to, payment, travel_date)
 VALUES (1, 'Jack', 'jack12@gmail.com', 20, 'Paris', 79000, '2018-1-1'),
         (2, 'Anna', 'anna@gmail.com', 19, 'NewYork', 405000, '2019-10-3'),
         (3, 'Wonder', 'wonder2@yahoo.com', 32, 'Sydney', 183000, '2012-8-5'),

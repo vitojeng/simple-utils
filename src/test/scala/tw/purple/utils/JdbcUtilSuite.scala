@@ -66,5 +66,22 @@ class JdbcUtilSuite extends munit.FunSuite {
     assertEquals(count, 2)
   }
 
+  test("query first row") {
+    val sql = "SELECT id, name, email FROM passengers where id>=?"
+    val row1 = dataSource.connection { implicit conn =>
+       firstRow(sql, Seq(3)) { rs =>
+        (rs.getInt("id"), rs.getString("name"), rs.getString("email"))
+      }
+    }
+    assertEquals(row1.get._1, 3)
+    assertEquals(row1.get._2, "Wonder")
+
+    val row2 = dataSource.connection { implicit conn =>
+      firstRow(sql, Seq(300)) { rs =>
+        (rs.getInt("id"), rs.getString("name"), rs.getString("email"))
+      }
+    }
+    assertEquals(row2.isEmpty, true)
+  }
 
 }
