@@ -108,6 +108,15 @@ object JdbcUtils {
       }
     }
 
+    def valueOf[T](sql: String, parameters: Seq[Any] = Seq.empty, columnIndex: Int = 1)(implicit conn: Connection): T = {
+      firstRow(sql, parameters) { rs =>
+        rs.getObject(columnIndex).asInstanceOf[T]
+      } match {
+        case Some(v) => v
+        case None => throw new RuntimeException("Query result set is empty.")
+      }
+    }
+
   }
 
   implicit class DataSourceOps(private val ds: DataSource) extends AnyVal {

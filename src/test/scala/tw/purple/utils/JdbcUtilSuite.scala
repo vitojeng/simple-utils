@@ -84,4 +84,23 @@ class JdbcUtilSuite extends munit.FunSuite {
     assertEquals(row2.isEmpty, true)
   }
 
+  test("query value of the first row") {
+    val sql = "SELECT id, name, email FROM passengers where id>=?"
+    val id = dataSource.connection { implicit conn =>
+      valueOf[Int](sql, Seq(3))
+    }
+    assertEquals(id, 3)
+
+    val email = dataSource.connection { implicit conn =>
+      valueOf[String](sql, Seq(3), 3)
+    }
+    assertEquals(email, "wonder2@yahoo.com")
+
+    interceptMessage[RuntimeException]("Query result set is empty.") {
+      dataSource.connection { implicit conn =>
+        valueOf[Int](sql, Seq(300))
+      }
+    }
+  }
+
 }
