@@ -1,4 +1,4 @@
-package tw.purple.utils
+package tw.purple.utils.jdbc
 
 import org.testcontainers.containers.PostgreSQLContainer
 

@@ -1,4 +1,4 @@
-package tw.purple.utils
+package tw.purple.utils.jdbc
 
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
 
@@ -127,55 +127,4 @@ object JdbcUtils {
     }
   }
 
-
-//  implicit class ConnectionOps(private val conn: Connection) extends AnyVal {
-//
-//    private def _iteratorOf[T](resultSet: ResultSet)(f: ResultSet => T): Iterator[T] = {
-//      new Iterator[T] {
-//        def hasNext: Boolean = resultSet.next()
-//
-//        def next(): T = f(resultSet)
-//      }
-//    }
-//
-//    private def _setParameters(statement: PreparedStatement, parameters: Seq[Any]): Unit = {
-//      statement.clearParameters()
-//      if (parameters.nonEmpty) {
-//        parameters.zipWithIndex.foreach { case (value, i) =>
-//          val parameterIndex = i + 1
-//          value match {
-//            case v: String => statement.setString(parameterIndex, v)
-//            case v: Long => statement.setLong(parameterIndex, v)
-//            case v: Int => statement.setInt(parameterIndex, v)
-//            case v: Boolean => statement.setBoolean(parameterIndex, v)
-//            case null => statement.setObject(parameterIndex, null)
-//            case v => throw new RuntimeException("The query parameter type not supported: " + v.getClass.toString)
-//          }
-//        }
-//      }
-//    }
-//
-//    def apply(f: Connection => Unit): Unit = {
-//      f(conn)
-//    }
-//
-//    def query[T](sql: String, parameters: Seq[Any] = Seq.empty)(f: ResultSet => T): Seq[T] = {
-//      Using.Manager { use =>
-//        val statement = use(conn.prepareStatement(sql))
-//        _setParameters(statement, parameters)
-//        val rs = use(statement.executeQuery())
-//        _iteratorOf(rs)(f).toSeq
-//      }.get
-//    }
-//
-//    def update(sql: String, parameters: Seq[Any] = Seq.empty): Int = {
-//      Using.resource(conn.prepareStatement(sql)) { statement =>
-//        _setParameters(statement, parameters)
-//        statement.executeUpdate()
-//      }
-//    }
-//
-//  }
-
 }
-

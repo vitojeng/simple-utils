@@ -1,11 +1,9 @@
-package tw.purple.utils
+package tw.purple.utils.jdbc
 
 import com.zaxxer.hikari.HikariDataSource
 import org.testcontainers.containers.PostgreSQLContainer
-import tw.purple.utils.JdbcUtils._
-import tw.purple.utils.JdbcUtils.ConnectionImports._
-
-import scala.util.Using
+import tw.purple.utils.jdbc.JdbcUtils._
+import tw.purple.utils.jdbc.JdbcUtils.ConnectionImports._
 
 class JdbcUtilSuite extends munit.FunSuite {
 
