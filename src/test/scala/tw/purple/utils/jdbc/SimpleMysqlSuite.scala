@@ -1,11 +1,11 @@
 package tw.purple.utils.jdbc
 
-import org.testcontainers.containers.PostgreSQLContainer
+import org.testcontainers.containers.{MySQLContainer}
 
-import scala.util.Using
 import java.sql.DriverManager
+import scala.util.Using
 
-class SimplePostgresSuite extends munit.FunSuite {
+class SimpleMysqlSuite extends munit.FunSuite {
 
   override def beforeAll(): Unit = {
   }
@@ -20,10 +20,10 @@ class SimplePostgresSuite extends munit.FunSuite {
     val sql = "SELECT foo FROM bar"
     var firstColumnValue = ""
     Using.Manager { use =>
-      val postgres: PostgreSQLContainer[_] =
-        use(ContainerUtils.postgres.newContainer(user, pass, dbName, "sql/init_postgresql.sql"))
-      postgres.start()
-      val url = ContainerUtils.postgres.jdbcUrl(postgres, dbName)
+      val mysql: MySQLContainer[_] =
+        use(ContainerUtils.mysql.newContainer(user, pass, dbName, "sql/init_mysql.sql"))
+      mysql.start()
+      val url = ContainerUtils.mysql.jdbcUrl(mysql, dbName)
       val conn = use(DriverManager.getConnection(url, user, pass))
       val statement = use(conn.createStatement())
       statement.execute(sql)

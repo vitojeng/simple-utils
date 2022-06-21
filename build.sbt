@@ -13,8 +13,10 @@ lazy val root = project
 
         munit % Test,
         postgresql % Test,
+        mysqlConnectorJava % Test,
         testcontainers % Test,
         testcontainersPostgresql % Test,
+        testcontainersMysql % Test,
         testcontainersJdbc % Test,
         slf4jApi % Test,
         logbackClassic % Test,

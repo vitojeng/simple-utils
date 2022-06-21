@@ -8,7 +8,7 @@ import tw.purple.utils.jdbc.JdbcUtils.ConnectionImports._
 class JdbcUtilSuite extends munit.FunSuite {
 
   val dbName = "test"
-  val container = PostgresUtils.newContainer("postgres", "123", dbName, "sql/init_postgresql.sql")
+  val container = ContainerUtils.postgres.newContainer("postgres", "123", dbName, "sql/init_postgresql.sql")
   var ip: String = ""
   var port: Int = 0
   var dataSource: HikariDataSource = _
@@ -19,7 +19,7 @@ class JdbcUtilSuite extends munit.FunSuite {
     container.start()
     ip = container.getHost
     port = container.getMappedPort(PostgreSQLContainer.POSTGRESQL_PORT)
-    jdbc = JdbcConnect(POSTGRES, ip, port, dbName)
+    jdbc = PostgresConnect(ip, port, dbName)
     url = jdbc.url()
     println(url)
     dataSource = jdbc.getDatasource(url, "postgres", "123")
