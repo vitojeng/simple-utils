@@ -9,39 +9,22 @@ import scala.util.Using
 
 object JdbcUtils {
 
-  sealed trait DatabaseKind {
-    def driverClass: String
-  }
-
-  case object POSTGRES extends DatabaseKind {
-    override def driverClass = "org.postgresql.Driver"
-  }
-
-  case class JdbcConnect(kind: DatabaseKind, ip: String, port: Int, dbName: String)
-
   implicit class JdbcConnectOps(private val db: JdbcConnect) extends AnyVal {
 
-    private def dbStr = db.kind match {
-      case POSTGRES => "postgresql"
-      case _ => throw new RuntimeException("Unsupported database: " + db.kind)
+    def getConnection(url: String = ""): Connection =
+      DriverManager.getConnection( if (url.isBlank) db.url() else url)
+
+    def getConnection(url: String, username: String, password: String): Connection =
+      DriverManager.getConnection(url, username, password)
+
+    def connection[T](url: String)(body: Connection => T): T = {
+      val conn = getConnection(url)
+      Using.resource(conn) { c => body(c) }
     }
 
-    def url(queryString: String = ""): String = {
-      val url = s"jdbc:$dbStr://${db.ip}:${db.port}/${db.dbName}"
-      if (queryString.nonEmpty) url + "?" + queryString else url
-    }
-
-    def getConnection(url: String): Connection =
-      DriverManager.getConnection(url)
-
-    def connection[T](url: String)(f: Connection => T): T = {
-      val conn = DriverManager.getConnection(url)
-      Using.resource(conn) { c => f(c) }
-    }
-
-    def connection[T](url: String, username: String, password: String)(f: Connection => T): T = {
-      val conn = DriverManager.getConnection(url, username, password)
-      Using.resource(conn) { c => f(c) }
+    def connection[T](url: String, username: String, password: String)(body: Connection => T): T = {
+      val conn = getConnection(url, username, password)
+      Using.resource(conn) { c => body(c) }
     }
 
     def getDatasource(url: String, username: String, password: String): HikariDataSource = {
@@ -49,7 +32,7 @@ object JdbcUtils {
       hikariConfig.setJdbcUrl(url)
       hikariConfig.setUsername(username)
       hikariConfig.setPassword(password)
-      hikariConfig.setDriverClassName(db.kind.driverClass)
+      hikariConfig.setDriverClassName(db.driverClass)
       new HikariDataSource(hikariConfig)
     }
   }

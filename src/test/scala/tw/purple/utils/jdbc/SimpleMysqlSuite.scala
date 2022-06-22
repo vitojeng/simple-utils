@@ -14,7 +14,7 @@ class SimpleMysqlSuite extends munit.FunSuite {
   }
 
   test("init script") {
-    val user = "postgres"
+    val user = "mysql"
     val pass = "123"
     val dbName = "test"
     val sql = "SELECT foo FROM bar"
