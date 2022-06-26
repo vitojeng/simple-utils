@@ -2,11 +2,14 @@ import Dependencies._
 
 val scala2Version = "2.13.8"
 
+ThisBuild / organization := "tw.purple"
+ThisBuild / version := "0.1-SNAPSHOT"
+
+
 lazy val root = project
   .in(file("."))
   .settings(
     name := "simple-utils",
-    version := "0.1.0",
 
     libraryDependencies ++= Seq(
         hikariCP % Compile,
