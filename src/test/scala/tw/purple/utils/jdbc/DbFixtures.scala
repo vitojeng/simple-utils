@@ -28,8 +28,8 @@ object DbFixtures {
     override def beforeAll(): Unit = {
       val ip = postgres().getHost
       val port = postgres().getMappedPort(PostgreSQLContainer.POSTGRESQL_PORT)
-      val connect = PostgresConnect(ip, port, DBNAME)
-      dataSource = connect.getDatasource(connect.url(), USERNAME, PASSWORD)
+      val ctx = JdbcContext.postgres(ip, port, DBNAME)
+      dataSource = ctx.getDatasource(ctx.url(), USERNAME, PASSWORD)
     }
     override def afterAll(): Unit = {
       dataSource.close()
@@ -54,8 +54,8 @@ object DbFixtures {
     override def beforeAll(): Unit = {
       val ip = mysql().getHost
       val port = mysql().getMappedPort(MySQLContainer.MYSQL_PORT)
-      val connect = MysqlConnect(ip, port, DBNAME)
-      dataSource = connect.getDatasource(connect.url(), USERNAME, PASSWORD)
+      val ctx = JdbcContext.mysql(ip, port, DBNAME)
+      dataSource = ctx.getDatasource(ctx.url(), USERNAME, PASSWORD)
     }
     override def afterAll(): Unit = {
       dataSource.close()

@@ -20,22 +20,18 @@ class JdbcUtilSuite extends munit.FunSuite {
     List(postgres, mysql) ++ dataSourceFixtures
 
 
-  private def postgresConnect = {
-    val ip = postgres().getHost
-    val port = postgres().getMappedPort(PostgreSQLContainer.POSTGRESQL_PORT)
-    PostgresConnect(ip, port, DbFixtures.DBNAME)
+  private def postgresCtx = {
+    JdbcContext.postgres(postgres().getHost, postgres().getMappedPort(PostgreSQLContainer.POSTGRESQL_PORT), DbFixtures.DBNAME)
   }
 
-  private def mysqlConnect = {
-    val ip = mysql().getHost
-    val port = mysql().getMappedPort(MySQLContainer.MYSQL_PORT)
-    MysqlConnect(ip, port, DbFixtures.DBNAME)
+  private def mysqlCtx = {
+    JdbcContext.mysql(mysql().getHost, mysql().getMappedPort(MySQLContainer.MYSQL_PORT), DbFixtures.DBNAME)
   }
 
   test("connection from DriverManager") {
     val sql = "SELECT name FROM passengers"
-    Seq(postgresConnect, mysqlConnect).foreach { jdbc =>
-      jdbc.connection(jdbc.url(), DbFixtures.USERNAME, DbFixtures.PASSWORD) { implicit conn =>
+    Seq(postgresCtx, mysqlCtx).foreach { ctx =>
+      ctx.connection(ctx.url(), DbFixtures.USERNAME, DbFixtures.PASSWORD) { implicit conn =>
         val lines: Seq[String] = query(sql) { rs =>
           rs.getString(1)
         }

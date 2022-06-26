@@ -13,7 +13,7 @@ object ContainerUtils {
       instance.withDatabaseName(databaseName)
       instance.withUsername(username)
       instance.withPassword(password)
-      if (!initScript.isBlank)
+      if (initScript.nonEmpty)
         instance.withInitScript(initScript)
 
       instance
@@ -37,7 +37,7 @@ object ContainerUtils {
       instance.withDatabaseName(databaseName)
       instance.withUsername(username)
       instance.withPassword(password)
-      if (!initScript.isBlank)
+      if (initScript.nonEmpty)
         instance.withInitScript(initScript)
 
       instance

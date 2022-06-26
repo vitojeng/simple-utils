@@ -6,13 +6,13 @@ import java.sql.{Connection, DriverManager, PreparedStatement, ResultSet}
 import javax.sql.DataSource
 import scala.util.Using
 
-
 object JdbcUtils {
 
-  implicit class JdbcConnectOps(private val db: JdbcConnect) extends AnyVal {
+  implicit class JdbcConnectOps(private val db: JdbcContext) extends AnyVal {
 
-    def getConnection(url: String = ""): Connection =
-      DriverManager.getConnection( if (url.isBlank) db.url() else url)
+    def getConnection(url: String = ""): Connection = {
+      DriverManager.getConnection( if (url.nonEmpty) url else db.url())
+    }
 
     def getConnection(url: String, username: String, password: String): Connection =
       DriverManager.getConnection(url, username, password)
