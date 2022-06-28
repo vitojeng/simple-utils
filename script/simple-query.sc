@@ -9,14 +9,18 @@
 
 
 import tw.purple.utils.jdbc._
+import scala.util.Using
 
-println("Hello")
-val jdbcContext = JdbcContext.mysql()
-              .url("localhost", 3306, "information_schema")
-              .dataSource("mysqluser", "mysqlpw")
-              .build()
-val tableNames = jdbcContext.connection { implicit conn =>
-  import ConnectionOps._
-  query("show tables")(_.getString(1))
+def newJdbcContext = JdbcContext.mysql()
+                      .url("localhost", 3306, "information_schema")
+                      .dataSource("mysqluser", "mysqlpw")
+                      .build()
+
+Using.resource(newJdbcContext) { ctx =>
+  val tableNames: Seq[String] = ctx.connection { implicit conn =>
+    import ConnectionOps._
+    query("show tables")(_.getString(1))
+  }
+  println(tableNames.mkString("\n"))
 }
-println(tableNames.mkString("\n"))
+

@@ -9,20 +9,22 @@
 
 
 import tw.purple.utils.jdbc._
+import scala.util.Using
 
 object Hello {
 
+  val jdbcContext = JdbcContext.mysql()
+          .url("localhost", 3306, "information_schema")
+          .dataSource("mysqluser", "mysqlpw")
+          .build()
   def main(args: Array[String]): Unit = {
-    println("Hello")
-    val jdbc = JdbcContext.mysql()
-              .url("localhost", 3306, "information_schema")
-              .dataSource("mysqluser", "mysqlpw")
-              .build()
-    val tableNames = jdbc.connection { implicit conn =>
-      import ConnectionOps._
-      query("show tables")(_.getString(1))
+    Using.resource(jdbcContext) { ctx =>
+      val tableNames = ctx.connection { implicit conn =>
+        import ConnectionOps._
+        query("show tables")(_.getString(1))
+      }
+      println(tableNames.mkString("\n"))
     }
-    println(tableNames.mkString("\n"))
   }
 
 }
