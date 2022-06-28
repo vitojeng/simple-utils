@@ -9,7 +9,6 @@
 
 
 import tw.purple.utils.jdbc._
-import tw.purple.utils.jdbc.JdbcUtils._
 
 println("Hello")
 val jdbcContext = JdbcContext.mysql()
@@ -17,7 +16,7 @@ val jdbcContext = JdbcContext.mysql()
               .dataSource("mysqluser", "mysqlpw")
               .build()
 val tableNames = jdbcContext.connection { implicit conn =>
-  import ConnectionImports._
+  import JdbcUtils.ConnectionImports._
   query("show tables")(_.getString(1))
 }
 println(tableNames.mkString("\n"))
