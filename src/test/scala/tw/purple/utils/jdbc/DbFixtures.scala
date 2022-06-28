@@ -22,17 +22,17 @@ object DbFixtures {
     }
   }
 
-  val pgDatasource = new Fixture[HikariDataSource]("postgres_datasource") {
-    private var dataSource: HikariDataSource = _
-    override def apply(): HikariDataSource = dataSource
+  val pgContext = new Fixture[JdbcContext]("postgres_context") {
+    private var context: JdbcContext = _
+    override def apply(): JdbcContext = context
     override def beforeAll(): Unit = {
-      val ip = postgres().getHost
-      val port = postgres().getMappedPort(PostgreSQLContainer.POSTGRESQL_PORT)
-      val ctx = JdbcContext.postgres(ip, port, DBNAME)
-      dataSource = ctx.getDatasource(ctx.url(), USERNAME, PASSWORD)
+      context = JdbcContext.postgres()
+        .url(postgres().getHost, postgres().getMappedPort(PostgreSQLContainer.POSTGRESQL_PORT), DbFixtures.DBNAME)
+        .dataSource(DbFixtures.USERNAME, DbFixtures.PASSWORD)
+        .build()
     }
     override def afterAll(): Unit = {
-      dataSource.close()
+      context.close()
     }
   }
 
@@ -48,18 +48,19 @@ object DbFixtures {
     }
   }
 
-  val mysqlDatasource = new Fixture[HikariDataSource]("mysql_datasource") {
-    private var dataSource: HikariDataSource = _
-    override def apply(): HikariDataSource = dataSource
+  val mysqlContext = new Fixture[JdbcContext]("mysql_context") {
+    private var context: JdbcContext = _
+    override def apply(): JdbcContext = context
     override def beforeAll(): Unit = {
-      val ip = mysql().getHost
-      val port = mysql().getMappedPort(MySQLContainer.MYSQL_PORT)
-      val ctx = JdbcContext.mysql(ip, port, DBNAME)
-      dataSource = ctx.getDatasource(ctx.url(), USERNAME, PASSWORD)
+      context = JdbcContext.mysql()
+        .url(mysql().getHost, mysql().getMappedPort(MySQLContainer.MYSQL_PORT), DbFixtures.DBNAME)
+        .dataSource(DbFixtures.USERNAME, DbFixtures.PASSWORD)
+        .build()
     }
     override def afterAll(): Unit = {
-      dataSource.close()
+      context.close()
     }
   }
+
 
 }

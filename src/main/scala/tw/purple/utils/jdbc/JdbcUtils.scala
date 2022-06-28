@@ -1,42 +1,9 @@
 package tw.purple.utils.jdbc
 
-import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
-
-import java.sql.{Connection, DriverManager, PreparedStatement, ResultSet}
-import javax.sql.DataSource
+import java.sql.{Connection, PreparedStatement, ResultSet}
 import scala.util.Using
 
 object JdbcUtils {
-
-  implicit class JdbcConnectOps(private val db: JdbcContext) extends AnyVal {
-
-    def getConnection(url: String = ""): Connection = {
-      DriverManager.getConnection( if (url.nonEmpty) url else db.url())
-    }
-
-    def getConnection(url: String, username: String, password: String): Connection =
-      DriverManager.getConnection(url, username, password)
-
-    def connection[T](url: String)(body: Connection => T): T = {
-      val conn = getConnection(url)
-      Using.resource(conn) { c => body(c) }
-    }
-
-    def connection[T](url: String, username: String, password: String)(body: Connection => T): T = {
-      val conn = getConnection(url, username, password)
-      Using.resource(conn) { c => body(c) }
-    }
-
-    def getDatasource(url: String, username: String, password: String): HikariDataSource = {
-      val hikariConfig = new HikariConfig
-      hikariConfig.setJdbcUrl(url)
-      hikariConfig.setUsername(username)
-      hikariConfig.setPassword(password)
-      hikariConfig.setDriverClassName(db.driverClass)
-      new HikariDataSource(hikariConfig)
-    }
-  }
-
 
   object ConnectionImports {
     private def _iteratorOf[T](resultSet: ResultSet)(f: ResultSet => T): Iterator[T] = {
@@ -97,15 +64,6 @@ object JdbcUtils {
       } match {
         case Some(v) => v
         case None => throw new RuntimeException("Query result set is empty.")
-      }
-    }
-
-  }
-
-  implicit class DataSourceOps(private val ds: DataSource) extends AnyVal {
-    def connection[T](f: Connection => T): T = {
-      Using.resource(ds.getConnection) { c =>
-        f(c)
       }
     }
   }

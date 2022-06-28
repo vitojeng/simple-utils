@@ -1,37 +1,26 @@
 package tw.purple.utils.jdbc
 
-import org.testcontainers.containers.{MySQLContainer, PostgreSQLContainer}
 import tw.purple.utils.jdbc.JdbcUtils.ConnectionImports._
-import tw.purple.utils.jdbc.JdbcUtils._
-
-import javax.sql.DataSource
 
 
 class JdbcUtilSuite extends munit.FunSuite {
 
   val postgres = DbFixtures.postgres
-  val pgDatasource = DbFixtures.pgDatasource
+  val pgContext: Fixture[JdbcContext] = DbFixtures.pgContext
   val mysql = DbFixtures.mysql
-  val mysqlDataSource = DbFixtures.mysqlDatasource
+  val mysqlContext: Fixture[JdbcContext] = DbFixtures.mysqlContext
 
-  val dataSourceFixtures = List(pgDatasource, mysqlDataSource)
+  val dbContextFixtures = List(pgContext, mysqlContext)
 
   override def munitFixtures =
-    List(postgres, mysql) ++ dataSourceFixtures
+    List(postgres, mysql) ++ dbContextFixtures
 
-
-  private def postgresCtx = {
-    JdbcContext.postgres(postgres().getHost, postgres().getMappedPort(PostgreSQLContainer.POSTGRESQL_PORT), DbFixtures.DBNAME)
-  }
-
-  private def mysqlCtx = {
-    JdbcContext.mysql(mysql().getHost, mysql().getMappedPort(MySQLContainer.MYSQL_PORT), DbFixtures.DBNAME)
-  }
+  private def jdbcContexts: List[JdbcContext] = dbContextFixtures.map(_.apply())
 
   test("connection from DriverManager") {
     val sql = "SELECT name FROM passengers"
-    Seq(postgresCtx, mysqlCtx).foreach { ctx =>
-      ctx.connection(ctx.url(), DbFixtures.USERNAME, DbFixtures.PASSWORD) { implicit conn =>
+    jdbcContexts.foreach { ctx =>
+      ctx.connection { implicit conn =>
         val lines: Seq[String] = query(sql) { rs =>
           rs.getString(1)
         }
@@ -40,18 +29,10 @@ class JdbcUtilSuite extends munit.FunSuite {
     }
   }
 
-  private def eachDataSource(body: DataSource => Unit): Unit = {
-    dataSourceFixtures.foreach { fixture =>
-      println(s"Fixture: ${fixture.fixtureName}")
-      body(fixture())
-    }
-  }
-
-
   test("query with parameter") {
-    eachDataSource { dataSource =>
+    jdbcContexts.foreach { dbContext =>
       val sql = "SELECT name FROM passengers where id>=?"
-      dataSource.connection { implicit conn =>
+      dbContext.connection { implicit conn =>
         val lines: Seq[String] = query(sql, Seq(3)) { rs =>
           rs.getString(1)
         }
@@ -61,18 +42,19 @@ class JdbcUtilSuite extends munit.FunSuite {
   }
 
   test("update with parameters") {
-    eachDataSource { dataSource =>
-      val count = dataSource.connection { implicit conn =>
+    jdbcContexts.foreach { dbContext =>
+      val count = dbContext.connection { implicit conn =>
         update("update passengers set name='NewName' where id>=?", Seq(5))
       }
       assertEquals(count, 2)
     }
   }
 
+
   test("query first row") {
-    eachDataSource { dataSource =>
+    jdbcContexts.foreach { dbContext =>
       val sql = "SELECT id, name, email FROM passengers where id>=?"
-      val row1 = dataSource.connection { implicit conn =>
+      val row1 = dbContext.connection { implicit conn =>
         firstRow(sql, Seq(3)) { rs =>
           (rs.getInt("id"), rs.getString("name"), rs.getString("email"))
         }
@@ -83,9 +65,9 @@ class JdbcUtilSuite extends munit.FunSuite {
   }
 
   test("query first row - empty") {
-    eachDataSource { dataSource =>
+    jdbcContexts.foreach { dbContext =>
       val sql = "SELECT id, name, email FROM passengers where id>=?"
-      val row = dataSource.connection { implicit conn =>
+      val row = dbContext.connection { implicit conn =>
         firstRow(sql, Seq(300)) { rs =>
           (rs.getInt("id"), rs.getString("name"), rs.getString("email"))
         }
