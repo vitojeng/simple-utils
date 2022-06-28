@@ -1,9 +1,7 @@
 package tw.purple.utils.jdbc
 
-import com.zaxxer.hikari.HikariDataSource
 import munit.Fixture
 import org.testcontainers.containers.{MySQLContainer, PostgreSQLContainer}
-import tw.purple.utils.jdbc.JdbcUtils._
 
 object DbFixtures {
   val USERNAME = "myuser"

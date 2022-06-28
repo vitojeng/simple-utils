@@ -16,7 +16,7 @@ val jdbcContext = JdbcContext.mysql()
               .dataSource("mysqluser", "mysqlpw")
               .build()
 val tableNames = jdbcContext.connection { implicit conn =>
-  import JdbcUtils.ConnectionImports._
+  import ConnectionOps._
   query("show tables")(_.getString(1))
 }
 println(tableNames.mkString("\n"))

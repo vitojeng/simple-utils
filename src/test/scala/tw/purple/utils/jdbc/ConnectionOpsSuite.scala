@@ -1,9 +1,6 @@
 package tw.purple.utils.jdbc
 
-import tw.purple.utils.jdbc.JdbcUtils.ConnectionImports._
-
-
-class JdbcUtilSuite extends munit.FunSuite {
+class ConnectionOpsSuite extends munit.FunSuite {
 
   val postgres = DbFixtures.postgres
   val pgContext: Fixture[JdbcContext] = DbFixtures.pgContext
@@ -20,6 +17,7 @@ class JdbcUtilSuite extends munit.FunSuite {
   test("connection from DriverManager") {
     val sql = "SELECT name FROM passengers"
     jdbcContexts.foreach { ctx =>
+      import ConnectionOps._
       ctx.connection { implicit conn =>
         val lines: Seq[String] = query(sql) { rs =>
           rs.getString(1)
@@ -31,6 +29,7 @@ class JdbcUtilSuite extends munit.FunSuite {
 
   test("query with parameter") {
     jdbcContexts.foreach { dbContext =>
+      import ConnectionOps._
       val sql = "SELECT name FROM passengers where id>=?"
       dbContext.connection { implicit conn =>
         val lines: Seq[String] = query(sql, Seq(3)) { rs =>
@@ -43,6 +42,7 @@ class JdbcUtilSuite extends munit.FunSuite {
 
   test("update with parameters") {
     jdbcContexts.foreach { dbContext =>
+      import ConnectionOps._
       val count = dbContext.connection { implicit conn =>
         update("update passengers set name='NewName' where id>=?", Seq(5))
       }
@@ -53,6 +53,7 @@ class JdbcUtilSuite extends munit.FunSuite {
 
   test("query first row") {
     jdbcContexts.foreach { dbContext =>
+      import ConnectionOps._
       val sql = "SELECT id, name, email FROM passengers where id>=?"
       val row1 = dbContext.connection { implicit conn =>
         firstRow(sql, Seq(3)) { rs =>
@@ -66,6 +67,7 @@ class JdbcUtilSuite extends munit.FunSuite {
 
   test("query first row - empty") {
     jdbcContexts.foreach { dbContext =>
+      import ConnectionOps._
       val sql = "SELECT id, name, email FROM passengers where id>=?"
       val row = dbContext.connection { implicit conn =>
         firstRow(sql, Seq(300)) { rs =>
