@@ -16,7 +16,7 @@ class ConnectionOpsSuite extends munit.FunSuite {
 
   test("query with parameter - Long") {
     jdbcContexts.foreach { dbContext =>
-      import ConnectionOps._
+      import JdbcOps._
       val payment: Long = 405000
       val sql = "SELECT name FROM passengers where payment>=?"
       dbContext.connection { implicit conn =>
@@ -30,7 +30,7 @@ class ConnectionOpsSuite extends munit.FunSuite {
 
   test("query with parameter - Int") {
     jdbcContexts.foreach { dbContext =>
-      import ConnectionOps._
+      import JdbcOps._
       val sql = "SELECT name FROM passengers where id>=?"
       val id: Int = 3
       dbContext.connection { implicit conn =>
@@ -44,7 +44,7 @@ class ConnectionOpsSuite extends munit.FunSuite {
 
   test("query with parameter - Boolean") {
     jdbcContexts.foreach { dbContext =>
-      import ConnectionOps._
+      import JdbcOps._
       val sql = "SELECT name FROM passengers where active=?"
       val active: Boolean = false
       dbContext.connection { implicit conn =>
@@ -58,7 +58,7 @@ class ConnectionOpsSuite extends munit.FunSuite {
 
   test("update with parameters") {
     jdbcContexts.foreach { dbContext =>
-      import ConnectionOps._
+      import JdbcOps._
       val sql = "update passengers set name='NewName' where id>=?"
       val count = dbContext.connection { implicit conn =>
         update(sql, Seq(5))
@@ -70,7 +70,7 @@ class ConnectionOpsSuite extends munit.FunSuite {
 
   test("query first row") {
     jdbcContexts.foreach { dbContext =>
-      import ConnectionOps._
+      import JdbcOps._
       val sql = "SELECT id, name, email FROM passengers where id>=?"
       val row1 = dbContext.connection { implicit conn =>
         firstRow(sql, Seq(3)) { rs =>
@@ -84,7 +84,7 @@ class ConnectionOpsSuite extends munit.FunSuite {
 
   test("query first row - empty") {
     jdbcContexts.foreach { dbContext =>
-      import ConnectionOps._
+      import JdbcOps._
       val sql = "SELECT id, name, email FROM passengers where id>=?"
       val row = dbContext.connection { implicit conn =>
         firstRow(sql, Seq(300)) { rs =>

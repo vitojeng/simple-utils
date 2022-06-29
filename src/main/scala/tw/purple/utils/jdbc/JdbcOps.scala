@@ -3,29 +3,29 @@ package tw.purple.utils.jdbc
 import java.sql.{Connection, PreparedStatement, ResultSet}
 import scala.util.Using
 
-object ConnectionOps {
+object JdbcOps {
 
   implicit class JdbcContextOps(private val ctx: JdbcContext) extends AnyVal {
     def query[T](sql: String, parameters: Seq[Any] = Seq.empty)(f: ResultSet => T): Seq[T] = {
       ctx.connection[Seq[T]] { conn =>
-        ConnectionOps.query[T](sql, parameters)(f)(conn)
+        JdbcOps.query[T](sql, parameters)(f)(conn)
       }
     }
     def update(sql: String, parameters: Seq[Any] = Seq.empty): Int = {
       ctx.connection[Int] { conn =>
-        ConnectionOps.update(sql, parameters)(conn)
+        JdbcOps.update(sql, parameters)(conn)
       }
     }
 
     def firstRow[T](sql: String, parameters: Seq[Any] = Seq.empty)(f: ResultSet => T): Option[T] = {
       ctx.connection[Option[T]] { conn =>
-        ConnectionOps.firstRow[T](sql, parameters)(f)(conn)
+        JdbcOps.firstRow[T](sql, parameters)(f)(conn)
       }
     }
 
     def valueOf[T](sql: String, parameters: Seq[Any] = Seq.empty, columnIndex: Int = 1): T = {
       ctx.connection[T] { conn =>
-        ConnectionOps.valueOf[T](sql, parameters, columnIndex)(conn)
+        JdbcOps.valueOf[T](sql, parameters, columnIndex)(conn)
       }
     }
   }

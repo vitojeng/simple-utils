@@ -1,7 +1,7 @@
 package tw.purple.utils.jdbc
 
 
-import tw.purple.utils.jdbc.ConnectionOps._
+import tw.purple.utils.jdbc.JdbcOps._
 
 class JdbcContextSuite extends munit.FunSuite {
 

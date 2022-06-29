@@ -20,7 +20,7 @@ object Hello {
   def main(args: Array[String]): Unit = {
     Using.resource(jdbcContext) { ctx =>
       val tableNames = ctx.connection { implicit conn =>
-        import ConnectionOps._
+        import JdbcOps._
         query("show tables")(_.getString(1))
       }
       println(tableNames.mkString("\n"))
