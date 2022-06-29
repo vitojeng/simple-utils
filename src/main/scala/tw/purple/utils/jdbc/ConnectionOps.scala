@@ -5,6 +5,31 @@ import scala.util.Using
 
 object ConnectionOps {
 
+  implicit class JdbcContextOps(private val ctx: JdbcContext) extends AnyVal {
+    def query[T](sql: String, parameters: Seq[Any] = Seq.empty)(f: ResultSet => T): Seq[T] = {
+      ctx.connection[Seq[T]] { conn =>
+        ConnectionOps.query[T](sql, parameters)(f)(conn)
+      }
+    }
+    def update(sql: String, parameters: Seq[Any] = Seq.empty): Int = {
+      ctx.connection[Int] { conn =>
+        ConnectionOps.update(sql, parameters)(conn)
+      }
+    }
+
+    def firstRow[T](sql: String, parameters: Seq[Any] = Seq.empty)(f: ResultSet => T): Option[T] = {
+      ctx.connection[Option[T]] { conn =>
+        ConnectionOps.firstRow[T](sql, parameters)(f)(conn)
+      }
+    }
+
+    def valueOf[T](sql: String, parameters: Seq[Any] = Seq.empty, columnIndex: Int = 1): T = {
+      ctx.connection[T] { conn =>
+        ConnectionOps.valueOf[T](sql, parameters, columnIndex)(conn)
+      }
+    }
+  }
+
   private def _iteratorOf[T](resultSet: ResultSet)(f: ResultSet => T): Iterator[T] = {
     new Iterator[T] {
       def hasNext: Boolean = resultSet.next()
@@ -31,7 +56,7 @@ object ConnectionOps {
   }
 
   def update(sql: String, parameters: Seq[Any] = Seq.empty)(implicit conn: Connection): Int = {
-    Using.resource(conn.prepareStatement(sql)) { statement =>
+    Using.resource[PreparedStatement, Int](conn.prepareStatement(sql)) { statement =>
       _setParameters(statement, parameters)
       statement.executeUpdate()
     }
@@ -39,9 +64,9 @@ object ConnectionOps {
 
   def query[T](sql: String, parameters: Seq[Any] = Seq.empty)(f: ResultSet => T)(implicit conn: Connection): Seq[T] = {
     val statement = conn.prepareStatement(sql)
-    Using.resource(statement) { statement =>
+    Using.resource[PreparedStatement, Seq[T]](statement) { statement =>
       _setParameters(statement, parameters)
-      Using.resource(statement.executeQuery()) { rs =>
+      Using.resource[ResultSet, Seq[T]](statement.executeQuery()) { rs =>
         _iteratorOf(rs)(f).toSeq
       }
     }
@@ -49,16 +74,16 @@ object ConnectionOps {
 
   def firstRow[T](sql: String, parameters: Seq[Any] = Seq.empty)(f: ResultSet => T)(implicit conn: Connection): Option[T] = {
     val statement = conn.prepareStatement(sql)
-    Using.resource(statement) { statement =>
+    Using.resource[PreparedStatement, Option[T]](statement) { statement =>
       _setParameters(statement, parameters)
-      Using.resource(statement.executeQuery()) { rs =>
+      Using.resource[ResultSet, Option[T]](statement.executeQuery()) { rs =>
         if (rs.next()) Some(f(rs)) else None
       }
     }
   }
 
   def valueOf[T](sql: String, parameters: Seq[Any] = Seq.empty, columnIndex: Int = 1)(implicit conn: Connection): T = {
-    firstRow(sql, parameters) { rs =>
+    firstRow[T](sql, parameters) { rs =>
       rs.getObject(columnIndex).asInstanceOf[T]
     } match {
       case Some(v) => v

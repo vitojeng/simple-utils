@@ -14,25 +14,27 @@ class ConnectionOpsSuite extends munit.FunSuite {
 
   private def jdbcContexts: List[JdbcContext] = dbContextFixtures.map(_.apply())
 
-  test("connection from DriverManager") {
-    val sql = "SELECT name FROM passengers"
-    jdbcContexts.foreach { ctx =>
+  test("query with parameter - Long") {
+    jdbcContexts.foreach { dbContext =>
       import ConnectionOps._
-      ctx.connection { implicit conn =>
-        val lines: Seq[String] = query(sql) { rs =>
+      val payment: Long = 405000
+      val sql = "SELECT name FROM passengers where payment>=?"
+      dbContext.connection { implicit conn =>
+        val lines: Seq[String] = query(sql, Seq(payment)) { rs =>
           rs.getString(1)
         }
-        assertEquals(lines, Seq("Jack", "Anna", "Wonder", "Stacy", "Stevie", "Harry"))
+        assertEquals(lines, Seq("Anna", "Harry"))
       }
     }
   }
 
-  test("query with parameter") {
+  test("query with parameter - Int") {
     jdbcContexts.foreach { dbContext =>
       import ConnectionOps._
       val sql = "SELECT name FROM passengers where id>=?"
+      val id: Int = 3
       dbContext.connection { implicit conn =>
-        val lines: Seq[String] = query(sql, Seq(3)) { rs =>
+        val lines: Seq[String] = query(sql, Seq(id)) { rs =>
           rs.getString(1)
         }
         assertEquals(lines, Seq("Wonder", "Stacy", "Stevie", "Harry"))
@@ -40,11 +42,26 @@ class ConnectionOpsSuite extends munit.FunSuite {
     }
   }
 
+  test("query with parameter - Boolean") {
+    jdbcContexts.foreach { dbContext =>
+      import ConnectionOps._
+      val sql = "SELECT name FROM passengers where active=?"
+      val active: Boolean = false
+      dbContext.connection { implicit conn =>
+        val lines: Seq[String] = query(sql, Seq(active)) { rs =>
+          rs.getString(1)
+        }
+        assertEquals(lines, Seq("Wonder", "Stevie", "Harry"))
+      }
+    }
+  }
+
   test("update with parameters") {
     jdbcContexts.foreach { dbContext =>
       import ConnectionOps._
+      val sql = "update passengers set name='NewName' where id>=?"
       val count = dbContext.connection { implicit conn =>
-        update("update passengers set name='NewName' where id>=?", Seq(5))
+        update(sql, Seq(5))
       }
       assertEquals(count, 2)
     }
