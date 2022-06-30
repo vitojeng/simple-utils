@@ -14,6 +14,7 @@
  */
 
 import tw.purple.utils.jdbc._
+import JdbcOps._
 import scala.util.Using
 
 def newJdbcContext = JdbcContext.mysql()
@@ -39,6 +40,6 @@ Using.resource(newJdbcContext) { ctx =>
     Column(rs.getString(1), rs.getString(2),
       rs.getString(3), rs.getString(4))
   }
-  println(tableNames.mkString("\n"))
+  println(columns.mkString("\n"))
 }
 
