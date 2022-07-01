@@ -1,11 +1,13 @@
 package tw.purple.utils.jdbc
 
+import org.testcontainers.containers.{MySQLContainer, PostgreSQLContainer}
+
 class ConnectionOpsSuite extends munit.FunSuite {
 
-  val postgres = DbFixtures.postgres
-  val pgContext: Fixture[JdbcContext] = DbFixtures.pgContext
-  val mysql = DbFixtures.mysql
-  val mysqlContext: Fixture[JdbcContext] = DbFixtures.mysqlContext
+  val postgres: Fixture[PostgreSQLContainer[_]] = DbFixtures.postgres.container
+  val pgContext: Fixture[JdbcContext] = DbFixtures.postgres.context
+  val mysql: Fixture[MySQLContainer[_]] = DbFixtures.mysql.container
+  val mysqlContext: Fixture[JdbcContext] = DbFixtures.mysql.context
 
   val dbContextFixtures = List(pgContext, mysqlContext)
 

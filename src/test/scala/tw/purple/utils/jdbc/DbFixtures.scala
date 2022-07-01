@@ -8,55 +8,59 @@ object DbFixtures {
   val PASSWORD = "mypass"
   val DBNAME = "test"
 
-  val postgres = new Fixture[PostgreSQLContainer[_]]("postgres") {
-    private var container: PostgreSQLContainer[_] = null
-    override def apply(): PostgreSQLContainer[_] = container
-    override def beforeAll(): Unit = {
-      container = ContainerUtils.postgres.newContainer(USERNAME, PASSWORD, DBNAME, "sql/init_postgresql.sql")
-      container.start()
+  object postgres {
+    val container: Fixture[PostgreSQLContainer[_]] = new Fixture[PostgreSQLContainer[_]]("postgres") {
+      private var _container: PostgreSQLContainer[_] = null
+      override def apply(): PostgreSQLContainer[_] = _container
+      override def beforeAll(): Unit = {
+        _container = ContainerUtils.postgres.newContainer(USERNAME, PASSWORD, DBNAME, "sql/init_postgresql.sql")
+        _container.start()
+      }
+      override def afterAll(): Unit = {
+        _container.stop()
+      }
     }
-    override def afterAll(): Unit = {
-      container.stop()
+
+    val context: Fixture[JdbcContext] = new Fixture[JdbcContext]("postgres_context") {
+      private var _context: JdbcContext = _
+      override def apply(): JdbcContext = _context
+      override def beforeAll(): Unit = {
+        _context = JdbcContext.postgres()
+          .url(container().getHost, container().getMappedPort(PostgreSQLContainer.POSTGRESQL_PORT), DbFixtures.DBNAME)
+          .dataSource(DbFixtures.USERNAME, DbFixtures.PASSWORD)
+          .build()
+      }
+      override def afterAll(): Unit = {
+        _context.close()
+      }
     }
   }
 
-  val pgContext = new Fixture[JdbcContext]("postgres_context") {
-    private var context: JdbcContext = _
-    override def apply(): JdbcContext = context
-    override def beforeAll(): Unit = {
-      context = JdbcContext.postgres()
-        .url(postgres().getHost, postgres().getMappedPort(PostgreSQLContainer.POSTGRESQL_PORT), DbFixtures.DBNAME)
-        .dataSource(DbFixtures.USERNAME, DbFixtures.PASSWORD)
-        .build()
+  object mysql {
+    val container: Fixture[MySQLContainer[_]] = new Fixture[MySQLContainer[_]]("mysql") {
+      private var _container: MySQLContainer[_] = null
+      override def apply(): MySQLContainer[_] = _container
+      override def beforeAll(): Unit = {
+        _container = ContainerUtils.mysql.newContainer(USERNAME, PASSWORD, DBNAME, "sql/init_mysql.sql")
+        _container.start()
+      }
+      override def afterAll(): Unit = {
+        _container.stop()
+      }
     }
-    override def afterAll(): Unit = {
-      context.close()
-    }
-  }
 
-  val mysql = new Fixture[MySQLContainer[_]]("mysql") {
-    private var container: MySQLContainer[_] = null
-    override def apply(): MySQLContainer[_] = container
-    override def beforeAll(): Unit = {
-      container = ContainerUtils.mysql.newContainer(USERNAME, PASSWORD, DBNAME, "sql/init_mysql.sql")
-      container.start()
-    }
-    override def afterAll(): Unit = {
-      container.stop()
-    }
-  }
-
-  val mysqlContext = new Fixture[JdbcContext]("mysql_context") {
-    private var context: JdbcContext = _
-    override def apply(): JdbcContext = context
-    override def beforeAll(): Unit = {
-      context = JdbcContext.mysql()
-        .url(mysql().getHost, mysql().getMappedPort(MySQLContainer.MYSQL_PORT), DbFixtures.DBNAME)
-        .dataSource(DbFixtures.USERNAME, DbFixtures.PASSWORD)
-        .build()
-    }
-    override def afterAll(): Unit = {
-      context.close()
+    val context: Fixture[JdbcContext] = new Fixture[JdbcContext]("mysql_context") {
+      private var _context: JdbcContext = _
+      override def apply(): JdbcContext = _context
+      override def beforeAll(): Unit = {
+        _context = JdbcContext.mysql()
+          .url(container().getHost, container().getMappedPort(MySQLContainer.MYSQL_PORT), DbFixtures.DBNAME)
+          .dataSource(DbFixtures.USERNAME, DbFixtures.PASSWORD)
+          .build()
+      }
+      override def afterAll(): Unit = {
+        _context.close()
+      }
     }
   }
 

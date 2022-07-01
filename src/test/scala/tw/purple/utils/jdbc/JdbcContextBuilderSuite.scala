@@ -8,7 +8,7 @@ import java.util.Properties
 
 class JdbcContextBuilderSuite extends munit.FunSuite {
 
-  val postgres = DbFixtures.postgres
+  val postgres: Fixture[PostgreSQLContainer[_]] = DbFixtures.postgres.container
 
   override def munitFixtures = List(postgres)
 
