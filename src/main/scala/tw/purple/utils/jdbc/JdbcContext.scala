@@ -63,7 +63,13 @@ class JdbcContextBuilder(kind: DbKind) {
     hikariConfig.setUsername(username)
     hikariConfig.setPassword(password)
     hikariConfig.setDriverClassName(kind.driverClass)
-    dataSource = new HikariDataSource(hikariConfig)
+
+    dataSource(hikariConfig)
+  }
+
+  def dataSource(config: HikariConfig): JdbcContextBuilder = {
+    assert( dataSource==null, "dataSource already assigned." )
+    dataSource = new HikariDataSource(config)
     this
   }
 
