@@ -3,6 +3,7 @@ package tw.purple.utils.jdbc
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
 
 import java.sql.Connection
+import java.util.Properties
 import scala.util.Using
 
 abstract class DbKind(val vendor: String, val driverClass: String)
@@ -71,6 +72,14 @@ class JdbcContextBuilder(kind: DbKind) {
     assert( dataSource==null, "dataSource already assigned." )
     dataSource = new HikariDataSource(config)
     this
+  }
+
+  def dataSource(prop: Properties): JdbcContextBuilder = {
+    dataSource(new HikariConfig(prop))
+  }
+
+  def dataSource(propertyFileName: String): JdbcContextBuilder = {
+    dataSource(new HikariConfig(propertyFileName))
   }
 
   def build(): JdbcContext = {
