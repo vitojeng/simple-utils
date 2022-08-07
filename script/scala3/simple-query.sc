@@ -1,5 +1,5 @@
 //> using scala "3.1.3"
-//> using lib "tw.purple:simple-utils_2.13:0.1-SNAPSHOT"
+//> using lib "tw.purple:simple-utils_2.13:0.1.0"
 //> using lib "mysql:mysql-connector-java:8.0.29"
 //> using lib "org.slf4j:slf4j-api:1.7.32"
 //> using lib "ch.qos.logback:logback-classic:1.2.10"
