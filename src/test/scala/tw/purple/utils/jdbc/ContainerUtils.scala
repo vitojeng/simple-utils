@@ -4,6 +4,23 @@ import org.testcontainers.containers.{JdbcDatabaseContainer, MySQLContainer, Pos
 
 object ContainerUtils {
 
+  def dbKind(container: JdbcDatabaseContainer[_]): DbKind = {
+    val className = container.getDriverClassName
+    if (className.contains("postgresql")) POSTGRES
+      else if (className.contains("mysql")) MYSQL
+      else throw new RuntimeException("Unknown database driver: " + className)
+  }
+
+  def createContext(container: JdbcDatabaseContainer[_], dbname: String, username: String, password: String) = {
+    val exposedPort = container.getExposedPorts.get(0)
+    val dbKind = ContainerUtils.dbKind(container)
+    val builder = new JdbcContextBuilder(dbKind)
+    builder.url(container.getHost, container.getMappedPort(exposedPort), dbname)
+      .dataSource(username, password)
+      .build()
+  }
+
+
   object postgres {
     val POSTGRES_IMAGE_NAME = "postgres:12.9"
 

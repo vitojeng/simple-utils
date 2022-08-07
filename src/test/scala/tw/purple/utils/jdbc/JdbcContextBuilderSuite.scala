@@ -1,6 +1,6 @@
 package tw.purple.utils.jdbc
 
-import org.testcontainers.containers.{MySQLContainer, PostgreSQLContainer}
+import org.testcontainers.containers.{JdbcDatabaseContainer, MySQLContainer, PostgreSQLContainer}
 import JdbcOps._
 import com.zaxxer.hikari.HikariConfig
 
@@ -10,65 +10,92 @@ import scala.util.Using
 
 class JdbcContextBuilderSuite extends munit.FunSuite {
 
-  val postgres: Fixture[PostgreSQLContainer[_]] = DbFixtures.postgres.newContainer()
+  private val postgres: Fixture[PostgreSQLContainer[_]] = DbFixtures.postgres.newContainer()
+  private val mysql: Fixture[MySQLContainer[_]] = DbFixtures.mysql.newContainer()
 
-  override def munitFixtures = List(postgres)
+  override def munitFixtures = List(postgres, mysql)
+
+  private def containers: List[JdbcDatabaseContainer[_]] = List(postgres(), mysql())
+
+  private def createContext(container: JdbcDatabaseContainer[_]) =
+    ContainerUtils.createContext(container, DbFixtures.DBNAME, DbFixtures.USERNAME, DbFixtures.PASSWORD)
 
   test("build datasource from essential config") {
-    val builder = new JdbcContextBuilder(POSTGRES)
-    val context = builder.url(postgres().getHost, postgres().getMappedPort(PostgreSQLContainer.POSTGRESQL_PORT), DbFixtures.DBNAME)
-                          .dataSource(DbFixtures.USERNAME, DbFixtures.PASSWORD)
-                          .build()
-    val value = context.valueOf[Int]("select 1")
-    assertEquals(value, 1)
+    containers.foreach { container =>
+      val context = createContext(container)
+      // Different drive return different type
+      val value: Int = ContainerUtils.dbKind(container) match {
+        case POSTGRES => context.valueOf[Int]("select 1")
+        case MYSQL => context.valueOf[Long]("select 1").toInt
+      }
+      assertEquals(value, 1)
+    }
   }
 
   test("build datasource from hikari config") {
-    val hikariConfig = new HikariConfig()
-    hikariConfig.setJdbcUrl(postgres().getJdbcUrl)
-    hikariConfig.setUsername(DbFixtures.USERNAME)
-    hikariConfig.setPassword(DbFixtures.PASSWORD)
+    containers.foreach { container =>
+      val hikariConfig = new HikariConfig()
+      hikariConfig.setJdbcUrl(container.getJdbcUrl)
+      hikariConfig.setUsername(DbFixtures.USERNAME)
+      hikariConfig.setPassword(DbFixtures.PASSWORD)
 
-    val builder = new JdbcContextBuilder(POSTGRES)
-    val context = builder.dataSource(hikariConfig)
-                          .build()
-    val value = context.valueOf[Int]("select 1")
-    assertEquals(value, 1)
+      val dbKind = ContainerUtils.dbKind(container)
+      val builder = new JdbcContextBuilder(dbKind)
+      val context = builder.dataSource(hikariConfig).build()
+      // Different drive return different type
+      val value: Int = ContainerUtils.dbKind(container) match {
+        case POSTGRES => context.valueOf[Int]("select 1")
+        case MYSQL => context.valueOf[Long]("select 1").toInt
+      }
+      assertEquals(value, 1)
+    }
   }
 
   test("build datasource from properties") {
-    val props = new Properties()
-    props.setProperty("jdbcUrl", postgres().getJdbcUrl)
-    props.setProperty("dataSource.user", DbFixtures.USERNAME)
-    props.setProperty("dataSource.password", DbFixtures.PASSWORD)
-    props.setProperty("dataSource.databaseName", DbFixtures.DBNAME)
+    containers.foreach { container =>
+      val props = new Properties()
+      props.setProperty("jdbcUrl", container.getJdbcUrl)
+      props.setProperty("dataSource.user", DbFixtures.USERNAME)
+      props.setProperty("dataSource.password", DbFixtures.PASSWORD)
+      props.setProperty("dataSource.databaseName", DbFixtures.DBNAME)
 
-    val builder = new JdbcContextBuilder(POSTGRES)
-    val context = builder.dataSource(props)
-                          .build()
-    val value = context.valueOf[Int]("select 1")
-    assertEquals(value, 1)
+      val dbKind = ContainerUtils.dbKind(container)
+      val builder = new JdbcContextBuilder(dbKind)
+      val context = builder.dataSource(props).build()
+      // Different drive return different type
+      val value: Int = ContainerUtils.dbKind(container) match {
+        case POSTGRES => context.valueOf[Int]("select 1")
+        case MYSQL => context.valueOf[Long]("select 1").toInt
+      }
+      assertEquals(value, 1)
+    }
   }
 
   test("build datasource from properties file") {
-    val props = new Properties()
-    props.setProperty("jdbcUrl", postgres().getJdbcUrl)
-    props.setProperty("dataSource.user", DbFixtures.USERNAME)
-    props.setProperty("dataSource.password", DbFixtures.PASSWORD)
-    props.setProperty("dataSource.databaseName", DbFixtures.DBNAME)
+    containers.foreach { container =>
+      val props = new Properties()
+      props.setProperty("jdbcUrl", container.getJdbcUrl)
+      props.setProperty("dataSource.user", DbFixtures.USERNAME)
+      props.setProperty("dataSource.password", DbFixtures.PASSWORD)
+      props.setProperty("dataSource.databaseName", DbFixtures.DBNAME)
 
-    val tempFile = java.io.File.createTempFile("postgres-datasource", null)
-    Using.resource(new FileOutputStream(tempFile)) { out =>
-      props.store(out, null)
+      val tempFile = java.io.File.createTempFile("simple-datasource", null)
+      Using.resource(new FileOutputStream(tempFile)) { out =>
+        props.store(out, null)
+      }
+
+      val dbKind = ContainerUtils.dbKind(container)
+      val builder = new JdbcContextBuilder(dbKind)
+      val context = builder.dataSource(tempFile.getAbsolutePath).build()
+      // Different drive return different type
+      val value: Int = ContainerUtils.dbKind(container) match {
+        case POSTGRES => context.valueOf[Int]("select 1")
+        case MYSQL => context.valueOf[Long]("select 1").toInt
+      }
+      assertEquals(value, 1)
+
+      tempFile.deleteOnExit()
     }
-
-    val builder = new JdbcContextBuilder(POSTGRES)
-    val context = builder.dataSource(tempFile.getAbsolutePath)
-                          .build()
-    val value = context.valueOf[Int]("select 1")
-    assertEquals(value, 1)
-
-    tempFile.deleteOnExit()
   }
 
 }
