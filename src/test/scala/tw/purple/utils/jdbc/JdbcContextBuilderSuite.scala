@@ -1,6 +1,6 @@
 package tw.purple.utils.jdbc
 
-import org.testcontainers.containers.PostgreSQLContainer
+import org.testcontainers.containers.{MySQLContainer, PostgreSQLContainer}
 import JdbcOps._
 import com.zaxxer.hikari.HikariConfig
 
@@ -10,7 +10,7 @@ import scala.util.Using
 
 class JdbcContextBuilderSuite extends munit.FunSuite {
 
-  val postgres: Fixture[PostgreSQLContainer[_]] = DbFixtures.postgres.container
+  val postgres: Fixture[PostgreSQLContainer[_]] = DbFixtures.postgres.newContainer()
 
   override def munitFixtures = List(postgres)
 

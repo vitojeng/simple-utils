@@ -9,7 +9,7 @@ object DbFixtures {
   val DBNAME = "test"
 
   object postgres {
-    val container: Fixture[PostgreSQLContainer[_]] = new Fixture[PostgreSQLContainer[_]]("postgres") {
+    def newContainer(): Fixture[PostgreSQLContainer[_]] = new Fixture[PostgreSQLContainer[_]]("postgres") {
       private var _container: PostgreSQLContainer[_] = null
       override def apply(): PostgreSQLContainer[_] = _container
       override def beforeAll(): Unit = {
@@ -21,7 +21,7 @@ object DbFixtures {
       }
     }
 
-    val context: Fixture[JdbcContext] = new Fixture[JdbcContext]("postgres_context") {
+    def context(container: Fixture[PostgreSQLContainer[_]]): Fixture[JdbcContext] = new Fixture[JdbcContext]("postgres_context") {
       private var _context: JdbcContext = _
       override def apply(): JdbcContext = _context
       override def beforeAll(): Unit = {
@@ -30,6 +30,7 @@ object DbFixtures {
           .dataSource(DbFixtures.USERNAME, DbFixtures.PASSWORD)
           .build()
       }
+
       override def afterAll(): Unit = {
         _context.close()
       }
@@ -37,7 +38,7 @@ object DbFixtures {
   }
 
   object mysql {
-    val container: Fixture[MySQLContainer[_]] = new Fixture[MySQLContainer[_]]("mysql") {
+    def newContainer(): Fixture[MySQLContainer[_]] = new Fixture[MySQLContainer[_]]("mysql") {
       private var _container: MySQLContainer[_] = null
       override def apply(): MySQLContainer[_] = _container
       override def beforeAll(): Unit = {
@@ -49,7 +50,7 @@ object DbFixtures {
       }
     }
 
-    val context: Fixture[JdbcContext] = new Fixture[JdbcContext]("mysql_context") {
+    def context(container: Fixture[MySQLContainer[_]]): Fixture[JdbcContext] = new Fixture[JdbcContext]("mysql_context") {
       private var _context: JdbcContext = _
       override def apply(): JdbcContext = _context
       override def beforeAll(): Unit = {

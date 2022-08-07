@@ -4,10 +4,10 @@ import org.testcontainers.containers.{MySQLContainer, PostgreSQLContainer}
 
 class ConnectionOpsSuite extends munit.FunSuite {
 
-  val postgres: Fixture[PostgreSQLContainer[_]] = DbFixtures.postgres.container
-  val pgContext: Fixture[JdbcContext] = DbFixtures.postgres.context
-  val mysql: Fixture[MySQLContainer[_]] = DbFixtures.mysql.container
-  val mysqlContext: Fixture[JdbcContext] = DbFixtures.mysql.context
+  val postgres: Fixture[PostgreSQLContainer[_]] = DbFixtures.postgres.newContainer()
+  val pgContext: Fixture[JdbcContext] = DbFixtures.postgres.context(postgres)
+  val mysql: Fixture[MySQLContainer[_]] = DbFixtures.mysql.newContainer()
+  val mysqlContext: Fixture[JdbcContext] = DbFixtures.mysql.context(mysql)
 
   val dbContextFixtures = List(pgContext, mysqlContext)
 
