@@ -3,7 +3,7 @@ import Dependencies._
 val scala2Version = "2.13.8"
 
 ThisBuild / organization := "tw.purple"
-ThisBuild / version := "0.1.0"
+ThisBuild / version := "0.1.1-SNAPSHOT"
 
 
 lazy val root = project
